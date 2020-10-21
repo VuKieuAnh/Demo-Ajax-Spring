@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+</head>
+<body>
+<form id="create" onsubmit="addStudent()">
+    <h1>Tao moi HV</h1>
+    <label>Name
+        <input type="text" placeholder="Ten HV" id="name"/>
+    </label>
+    <label>Province
+        <select id="province">
+            <th:block th:each="p: ${provinces}">
+                <option th:value="${p.id}" th:text="${p.name}"></option>
+            </th:block>
+        </select>
+    </label>
+    <input type="submit" value="Tạo mới">
+</form>
+
+<form>
+    <label>Tên <input type="text" id="nameSearch" onchange="search()"></label>
+    <input type="submit" value="tìm kiếm">
+</form>
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Province</th>
+    </tr>
+    <tbody id="listStudent">
+        <th:block th:each="c: ${students}">
+            <tr>
+                <td th:text="${c.name}"></td>
+                <td th:text="${c.province.name}"></td>
+            </tr>
+        </th:block>
+    </tbody>
+</table>
+<script>
+    function addStudent() {
+        let studentname = $('#name').val();
+        let provinceId = $('#province').val();
+        let newStudent =   {
+            name: studentname,
+            province: {
+                id: provinceId
+            }
+        }
+        $.ajax({
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            type: "POST",
+            data: JSON.stringify(newStudent),
+            url: "/students/create",
+            success: showListStudent("/students/findAll")
+        })
+        event.preventDefault();
+    }
+    function showListStudent(url) {
+        $.ajax({
+            type: "GET",
+            url: url,
+            success:function (dshv) {
+                let content= "";
+                for (let i = 0; i < dshv.length; i++) {
+                    content += `<tr><td >${dshv[i].name}</td>`+
+                        `<td >${dshv[i].province.name}</td></tr>`
+                }
+                $('#listStudent').html(content);
+            }
+        })
+    }
+    function search() {
+        let name = $('#nameSearch').val();
+        let urlSearchParams = "/students/search/" + name;
+        $.ajax({
+            type: 'GET',
+            url: urlSearchParams,
+            success: showListStudent(urlSearchParams)
+        })
+        event.preventDefault()
+    }
+</script>
+</body>
+</html>
